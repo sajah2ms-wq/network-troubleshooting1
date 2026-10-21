@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>نشاط: اختر الأمر المناسب لكل عَرَض</title>
+<style>
+  :root {
+    --navy: #12355B;
+    --blue: #2E75B6;
+    --light: #DCE9F7;
+    --pale: #EEF4FC;
+    --gold: #C9A227;
+    --ink: #1A1A1A;
+    --muted: #475569;
+    --ok: #1B6E43;
+    --ok-bg: #E4F4EB;
+    --bad: #A52A24;
+    --bad-bg: #FBE9E7;
+    --serif: "Times New Roman", Times, "Noto Naskh Arabic", "Segoe UI", serif;
+    --mono: "Courier New", Courier, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--serif);
+    color: var(--ink);
+    background: linear-gradient(180deg, #E8F1FB 0%, #DCE9F7 55%, #C7DAF0 100%);
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: max(16px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+    font-size: 20px;
+    line-height: 1.6;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    color: var(--muted); font-size: 15px; margin-bottom: 8px;
+  }
+  h1 { color: var(--navy); font-size: 30px; line-height: 1.3; margin: 4px 0 16px; }
+  .card {
+    background: #fff; border-radius: 18px; padding: 22px 22px;
+    box-shadow: 0 2px 10px rgba(18, 53, 91, .12);
+  }
+  .card + .card { margin-top: 14px; }
+  .hidden { display: none !important; }
+  p { margin: 0 0 12px; }
+  .lead { font-size: 22px; }
+
+  /* cheat sheet */
+  details { margin-top: 14px; background: var(--pale); border-radius: 14px; padding: 4px 16px; }
+  summary { cursor: pointer; padding: 10px 0; color: var(--navy); font-weight: bold; font-size: 19px; }
+  .cheat { list-style: none; margin: 4px 0 8px; padding: 0; }
+  .cheat li { display: flex; gap: 12px; align-items: baseline; padding: 8px 0; border-top: 1px solid #C9D9EC; font-size: 18px; }
+  .cheat li:first-child { border-top: 0; }
+  .cmd { font-family: var(--mono); font-weight: bold; color: var(--navy); direction: ltr; unicode-bidi: isolate; }
+  .cheat .cmd { min-width: 96px; text-align: left; flex-shrink: 0; }
+
+  /* progress */
+  .progress-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; color: var(--navy); font-weight: bold; font-size: 18px; }
+  .bar { flex: 1; height: 10px; background: #fff; border-radius: 999px; overflow: hidden; box-shadow: inset 0 0 0 1px #B9CFE8; }
+  .bar > span { display: block; height: 100%; width: 0; background: var(--blue); transition: width .3s ease; }
+
+  .scenario-label { color: var(--blue); font-weight: bold; font-size: 16px; margin-bottom: 6px; }
+  .scenario { font-size: 25px; line-height: 1.55; color: var(--navy); font-weight: bold; margin: 0; }
+
+  /* answer buttons */
+  .options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+  .opt {
+    font-family: var(--mono); font-weight: bold; font-size: 22px; direction: ltr; text-align: center;
+    padding: 18px 10px; border-radius: 14px; border: 2px solid var(--blue); background: #fff; color: var(--navy);
+    cursor: pointer; min-height: 64px; transition: background .15s, transform .05s;
+  }
+  .opt:hover:not(:disabled) { background: var(--light); }
+  .opt:active:not(:disabled) { transform: scale(.98); }
+  .opt:focus-visible, .next:focus-visible, .btn:focus-visible, summary:focus-visible { outline: 4px solid var(--gold); outline-offset: 2px; }
+  .opt:disabled { cursor: default; }
+  .opt.correct { background: var(--ok-bg); border-color: var(--ok); color: var(--ok); }
+  .opt.wrong { background: var(--bad-bg); border-color: var(--bad); color: var(--bad); }
+  .opt.dim { opacity: .55; }
+  .opt .mark { font-family: var(--serif); font-size: 18px; margin-inline-start: 8px; }
+
+  /* feedback */
+  .feedback { margin-top: 16px; border-radius: 14px; padding: 14px 16px; font-size: 20px; }
+  .feedback.ok { background: var(--ok-bg); border: 2px solid var(--ok); }
+  .feedback.no { background: var(--bad-bg); border: 2px solid var(--bad); }
+  .feedback strong { display: block; font-size: 22px; margin-bottom: 4px; }
+  .feedback.ok strong { color: var(--ok); }
+  .feedback.no strong { color: var(--bad); }
+
+  .btn, .next {
+    font-family: var(--serif); font-size: 21px; font-weight: bold; color: #fff; background: var(--navy);
+    border: 0; border-radius: 14px; padding: 14px 28px; cursor: pointer; min-height: 56px;
+  }
+  .btn:hover, .next:hover { background: #0D2848; }
+  .btn.alt { background: #fff; color: var(--navy); border: 2px solid var(--navy); }
+  .actions { margin-top: 16px; display: flex; gap: 12px; flex-wrap: wrap; }
+  .next { width: 100%; }
+
+  /* result */
+  .score { font-size: 54px; font-weight: bold; color: var(--navy); line-height: 1.1; margin: 4px 0 6px; }
+  .score small { font-size: 24px; color: var(--muted); font-weight: normal; }
+  .review { margin: 14px 0 0; padding: 0; list-style: none; }
+  .review li { padding: 12px 0; border-top: 1px solid #D5E2F2; font-size: 18px; }
+  .review .q { color: var(--navy); font-weight: bold; }
+  .review .a { color: var(--ok); }
+
+  footer { text-align: center; color: var(--muted); font-size: 14px; margin-top: 18px; }
+
+  @media (max-width: 460px) {
+    body { font-size: 18px; padding-inline: 12px; }
+    h1 { font-size: 25px; }
+    .card { padding: 18px 16px; }
+    .scenario { font-size: 21px; }
+    .opt { font-size: 19px; padding: 16px 6px; }
+    .score { font-size: 46px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .bar > span, .opt { transition: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar"><span>مادة الأمن والشبكات – المحاضرة الرابعة</span><span>جامعة كربلاء</span></div>
+  <h1>اختر الأمر المناسب لكل عَرَض</h1>
+
+  <!-- start -->
+  <section id="start" class="card">
+    <p class="lead">ستظهر لك <strong id="totalCount">8</strong> حالات. في كل حالة اختر الأمر الذي تستخدمه لحلّها.</p>
+    <p>لا تقلق إن أخطأت: بعد كل إجابة يظهر لك الجواب الصحيح وسببه.</p>
+    <details open>
+      <summary>تذكير بالأوامر الأربعة</summary>
+      <ul class="cheat">
+        <li><span class="cmd">ping</span><span>يفحص هل الجهاز الآخر يستجيب، وكم يستغرق الرد.</span></li>
+        <li><span class="cmd">ipconfig</span><span>يعرض إعدادات الشبكة في جهازك: IP والبوابة وDNS.</span></li>
+        <li><span class="cmd">tracert</span><span>يعرض المحطات التي يمر بها الطريق إلى الموقع.</span></li>
+        <li><span class="cmd">nslookup</span><span>يفحص هل DNS يحوّل الاسم إلى عنوان IP.</span></li>
+      </ul>
+    </details>
+    <div class="actions"><button class="btn" id="startBtn" type="button">ابدأ</button></div>
+  </section>
+
+  <!-- quiz -->
+  <section id="quiz" class="hidden">
+    <div class="progress-row">
+      <span id="progressText">الحالة 1 من 8</span>
+      <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="8" aria-valuenow="0" id="bar"><span id="barFill"></span></div>
+    </div>
+    <div class="card">
+      <div class="scenario-label">الحالة</div>
+      <p class="scenario" id="scenarioText"></p>
+      <div class="options" id="options" role="group" aria-label="اختر الأمر"></div>
+      <div id="feedback" class="feedback hidden" role="status" aria-live="polite"></div>
+      <div class="actions"><button class="next hidden" id="nextBtn" type="button">التالي</button></div>
+    </div>
+    <details>
+      <summary>تذكير بالأوامر</summary>
+      <ul class="cheat">
+        <li><span class="cmd">ping</span><span>هل يستجيب؟ وكم الزمن؟</span></li>
+        <li><span class="cmd">ipconfig</span><span>إعدادات جهازي.</span></li>
+        <li><span class="cmd">tracert</span><span>المحطات في الطريق.</span></li>
+        <li><span class="cmd">nslookup</span><span>تحويل الاسم إلى عنوان (DNS).</span></li>
+      </ul>
+    </details>
+  </section>
+
+  <!-- result -->
+  <section id="result" class="card hidden">
+    <div class="scenario-label">نتيجتك</div>
+    <div class="score"><span id="scoreNum">0</span> <small>من <span id="scoreTotal">8</span></small></div>
+    <p class="lead" id="scoreMsg"></p>
+    <div id="reviewBox" class="hidden">
+      <p style="color:var(--navy);font-weight:bold;margin-top:10px;">حالات تحتاج مراجعة:</p>
+      <ul class="review" id="reviewList"></ul>
+    </div>
+    <div class="actions"><button class="btn" id="againBtn" type="button">ابدأ من جديد</button></div>
+  </section>
+
+  <footer>نشاط تدريبي لمحاضرة استكشاف أخطاء الشبكة</footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var COMMANDS = ["ping", "ipconfig", "tracert", "nslookup"];
+  var ROLE = {
+    ping: "فحص هل الجهاز الآخر يستجيب وكم يستغرق الرد",
+    ipconfig: "عرض إعدادات الشبكة في جهازك",
+    tracert: "عرض المحطات التي يمر بها الطريق",
+    nslookup: "فحص تحويل الاسم إلى عنوان IP (DNS)"
+  };
+
+  var SCENARIOS = [
+    { text: "تريد أن تعرف عنوان IP الخاص بجهازك وعنوان البوابة (Default Gateway).",
+      answer: "ipconfig",
+      why: "ipconfig يعرض إعدادات الشبكة في جهازك: IP والبوابة وDNS." },
+    { text: "تريد أن تعرف هل الموجّه (Router) يستجيب لجهازك أم لا.",
+      answer: "ping",
+      why: "ping يرسل حزماً صغيرة إلى الجهاز الآخر ويخبرك هل ردّ، وكم أخذ من وقت." },
+    { text: "الواي فاي ظاهر، وping بالرقم نجح، لكن الموقع لا يفتح بالاسم. تريد أن تختبر هل DNS يحوّل الاسم إلى عنوان.",
+      answer: "nslookup",
+      why: "nslookup يسأل خادم DNS: ما عنوان هذا الاسم؟ فإن لم يجب فالمشكلة في DNS." },
+    { text: "تريد أن ترى المحطات (Hops) التي تمر بها الحزم حتى تصل إلى الموقع.",
+      answer: "tracert",
+      why: "tracert يعرض الطريق محطة بمحطة، مع زمن كل محطة." },
+    { text: "ظهر لجهازك عنوان يبدأ بـ 169.254، وتريد أن ترى بقية إعداداته بالتفصيل.",
+      answer: "ipconfig",
+      why: "ipconfig /all يعرض التفاصيل كاملة، ومنها هل استلم الجهاز عنواناً من DHCP." },
+    { text: "تريد أن تعرف زمن الرد، وهل ضاعت حزم، عند الاتصال بموقع.",
+      answer: "ping",
+      why: "ping يعرض زمن الرد (time) ونسبة الفقد (Lost)." },
+    { text: "الموقع بطيء جداً، وتريد أن تعرف عند أي محطة يرتفع الزمن.",
+      answer: "tracert",
+      why: "tracert يظهر زمن كل محطة، فتلاحظ أين يقفز الزمن." },
+    { text: "ظهرت لك رسالة: Ping request could not find host. وتريد أن تتأكد أن المشكلة في الاسم.",
+      answer: "nslookup",
+      why: "الرسالة تعني أن الاسم لم يتحوّل إلى عنوان، وnslookup يفحص ذلك مباشرة." }
+  ];
+
+  var $ = function (id) { return document.getElementById(id); };
+  var start = $("start"), quiz = $("quiz"), result = $("result");
+  var order = [], idx = 0, score = 0, missed = [], answered = false;
+
+  function shuffle(arr) {
+    var a = arr.slice(), i, j, t;
+    for (i = a.length - 1; i > 0; i--) {
+      j = Math.floor(Math.random() * (i + 1));
+      t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  function show(section) {
+    [start, quiz, result].forEach(function (s) { s.classList.add("hidden"); });
+    section.classList.remove("hidden");
+    window.scrollTo(0, 0);
+  }
+
+  function begin() {
+    order = shuffle(SCENARIOS);
+    idx = 0; score = 0; missed = [];
+    show(quiz);
+    renderQuestion();
+  }
+
+  function renderQuestion() {
+    var s = order[idx], total = order.length;
+    answered = false;
+    $("progressText").textContent = "الحالة " + (idx + 1) + " من " + total;
+    $("bar").setAttribute("aria-valuemax", String(total));
+    $("bar").setAttribute("aria-valuenow", String(idx));
+    $("barFill").style.width = ((idx / total) * 100) + "%";
+    $("scenarioText").textContent = s.text;
+    $("feedback").className = "feedback hidden";
+    $("feedback").innerHTML = "";
+    $("nextBtn").classList.add("hidden");
+    $("nextBtn").textContent = (idx === total - 1) ? "عرض النتيجة" : "التالي";
+
+    var box = $("options");
+    box.innerHTML = "";
+    COMMANDS.forEach(function (cmd) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "opt";
+      b.setAttribute("data-cmd", cmd);
+      b.textContent = cmd;
+      b.addEventListener("click", function () { choose(cmd, b); });
+      box.appendChild(b);
+    });
+  }
+
+  function addMark(btn, ch) {
+    var m = document.createElement("span");
+    m.className = "mark";
+    m.textContent = ch;
+    btn.appendChild(m);
+  }
+
+  function choose(cmd, btn) {
+    if (answered) return;
+    answered = true;
+    var s = order[idx];
+    var fb = $("feedback");
+    var buttons = $("options").querySelectorAll(".opt");
+    var right = (cmd === s.answer);
+
+    buttons.forEach(function (b) {
+      b.disabled = true;
+      var c = b.getAttribute("data-cmd");
+      if (c === s.answer) { b.classList.add("correct"); addMark(b, " ✓"); }
+      else if (c === cmd) { b.classList.add("wrong"); addMark(b, " ✗"); }
+      else { b.classList.add("dim"); }
+    });
+
+    var strong = document.createElement("strong");
+    var p = document.createElement("div");
+    if (right) {
+      score++;
+      fb.className = "feedback ok";
+      strong.textContent = "إجابة صحيحة";
+      p.textContent = s.why;
+    } else {
+      missed.push(s);
+      fb.className = "feedback no";
+      strong.textContent = "ليست هذه الإجابة";
+      var chosen = document.createElement("span");
+      chosen.className = "cmd";
+      chosen.textContent = cmd;
+      p.appendChild(document.createTextNode("الأمر "));
+      p.appendChild(chosen);
+      p.appendChild(document.createTextNode(" يُستخدم من أجل " + ROLE[cmd] + ". "));
+      var ans = document.createElement("span");
+      ans.className = "cmd";
+      ans.textContent = s.answer;
+      p.appendChild(document.createTextNode("الجواب الصحيح: "));
+      p.appendChild(ans);
+      p.appendChild(document.createTextNode(". " + s.why));
+    }
+    fb.innerHTML = "";
+    fb.appendChild(strong);
+    fb.appendChild(p);
+
+    var nb = $("nextBtn");
+    nb.classList.remove("hidden");
+    nb.focus({ preventScroll: false });
+  }
+
+  function next() {
+    if (!answered) return;
+    idx++;
+    if (idx >= order.length) { finish(); } else { renderQuestion(); }
+  }
+
+  function finish() {
+    var total = order.length;
+    $("scoreNum").textContent = String(score);
+    $("scoreTotal").textContent = String(total);
+    var msg;
+    if (score === total) msg = "ممتاز! عرفت الأمر المناسب لكل حالة.";
+    else if (score >= total - 2) msg = "جيد جداً! راجع الحالات القليلة أدناه.";
+    else if (score >= Math.ceil(total / 2)) msg = "جيد. راجع الحالات أدناه ثم أعد المحاولة.";
+    else msg = "لا بأس، هذه بداية. راجع تذكير الأوامر وأعد المحاولة.";
+    $("scoreMsg").textContent = msg;
+
+    var list = $("reviewList");
+    list.innerHTML = "";
+    if (missed.length) {
+      missed.forEach(function (s) {
+        var li = document.createElement("li");
+        var q = document.createElement("div"); q.className = "q"; q.textContent = s.text;
+        var a = document.createElement("div"); a.className = "a";
+        var c = document.createElement("span"); c.className = "cmd"; c.textContent = s.answer;
+        a.appendChild(document.createTextNode("الصحيح: ")); a.appendChild(c);
+        a.appendChild(document.createTextNode(" — " + s.why));
+        li.appendChild(q); li.appendChild(a); list.appendChild(li);
+      });
+      $("reviewBox").classList.remove("hidden");
+    } else {
+      $("reviewBox").classList.add("hidden");
+    }
+    $("barFill").style.width = "100%";
+    show(result);
+  }
+
+  $("totalCount").textContent = String(SCENARIOS.length);
+  $("startBtn").addEventListener("click", begin);
+  $("nextBtn").addEventListener("click", next);
+  $("againBtn").addEventListener("click", begin);
+})();
+</script>
+</body>
+</html>
